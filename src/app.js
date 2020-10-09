@@ -10,6 +10,10 @@
  //Set static to Public file
  app.use(express.static(path.join(__dirname, 'public')));
 
+ app.use(express.urlencoded({
+   extended: true
+ }));
+
  const accountData = fs.readFileSync('src/json/accounts.json', {
    encoding: 'utf8'
  });
@@ -54,6 +58,44 @@
    });
  })
 
+ app.get('/transfer', function (req, res) {
+   res.render('transfer');
+ })
+
+ app.post('/transfer', function (req, res) {
+   accounts[req.body.from].balance -= req.body.amount;
+   accounts[req.body.to].balance += parseInt(req.body.amount, 10);
+   let accountsJSON = JSON.stringify(accounts, null, 4);
+
+   fs.writeFileSync(path.join(__dirname, '/../src/json/accounts.json'), accountsJSON, 'utf8')
+
+   res.render('transfer', {
+     message: "Transfer Completed"
+   })
+
+ })
+
+ app.get('/payment', function (req, res) {
+   res.render('payment', {
+     account: accounts.credit
+   })
+
+ })
+
+ app.post('/payment', function (req, res) {
+   accounts.credit.balance -= req.body.amount;
+   accounts.credit.available += parseInt(req.body.amount, 10);
+   let accountsJSON = JSON.stringify(accounts, null, 4);
+
+   fs.writeFileSync(path.join(__dirname, '/../src/json/accounts.json'), accountsJSON, 'utf8');
+   res.render('payment', {
+     message: "Payment Successful",
+     account: accounts.credit
+   })
+
+ })
+
+ //localhost Port
  app.listen(3000, () => {
    console.log('PS Project Running on port 3000!')
  });
